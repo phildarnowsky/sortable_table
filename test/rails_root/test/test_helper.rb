@@ -11,10 +11,10 @@ Dir[File.join(RAILS_ROOT, 'test', 'factories', '*.rb')].each do |file|
   require file
 end
 
-class Test::Unit::TestCase
+class ActiveSupport::TestCase
   
-  self.backtrace_silencers << :rails_vendor
-  self.backtrace_filters   << :rails_root
+  #self.backtrace_silencers << :rails_vendor
+  #self.backtrace_filters   << :rails_root
   
   self.use_transactional_fixtures = true
   self.use_instantiated_fixtures  = false
