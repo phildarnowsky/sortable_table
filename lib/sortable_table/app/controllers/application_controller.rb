@@ -52,6 +52,15 @@ module SortableTable
 
             helper_method :sort_order, :default_sort_column, :sortable_table_direction
           end
+
+          def post_fetch_sort(hash)
+            @post_fetch_sorts ||= HashWithIndifferentAccess.new
+            @post_fetch_sorts.merge!(hash)
+          end
+
+          def post_fetch_sorts
+            @post_fetch_sorts || {}
+          end
         end
         
         module InstanceMethods
@@ -84,6 +93,20 @@ module SortableTable
             else
               "#{column} #{direction}"
             end
+          end
+
+          def handle_post_fetch_sorts(collection_name)
+            found_sort = self.class.post_fetch_sorts[params[:sort]]
+            return unless found_sort
+
+            collection = self.instance_variable_get(collection_name)
+            sorted_collection = collection.sort_by {|x| found_sort.call(x)}
+
+            if normalize_direction(params[:order]) == 'descending'
+              sorted_collection.reverse!
+            end
+
+            self.instance_variable_set(collection_name, sorted_collection)
           end
         end
 

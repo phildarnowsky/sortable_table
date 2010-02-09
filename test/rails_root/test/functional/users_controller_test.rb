@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../test_helper'
+require 'sha1'
 
 class UsersControllerTest < ActionController::TestCase
 
@@ -20,6 +21,10 @@ class UsersControllerTest < ActionController::TestCase
 
     should_sort_by :age_and_name => ["age", "users.name"] do |user|
       "#{user.age}#{user.name}"
+    end
+
+    should_sort_by :name_hash do |user|
+      SHA1.hexdigest(user.name)
     end
 
     # block form to test an action other than :index

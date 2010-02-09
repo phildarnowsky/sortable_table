@@ -21,6 +21,10 @@ module SortableTable
       def to_s
         name.to_s
       end
+
+      def to_sym
+        name.to_sym
+      end
     end
 
     def should_sort_by(attribute, options = {}, &block)
@@ -119,8 +123,9 @@ module SortableTable
     end
     
     def default_sorting_block(model_under_test, attribute)
-      block = handle_boolean_attribute(model_under_test, attribute)
-      block ||= lambda { |model_instance| model_instance.send(attribute) } 
+      block = 
+        handle_boolean_attribute(model_under_test, attribute) ||
+        lambda { |model_instance| model_instance.send(attribute) } 
     end
     
     def handle_boolean_attribute(model_under_test, attribute)
@@ -128,7 +133,7 @@ module SortableTable
         lambda { |model_instance| model_instance.send(attribute).to_s } 
       end
     end
-    
+
     def attribute_is_boolean?(model_under_test, attribute)
       db_column = model_under_test.columns.select { |each| each.name == attribute.to_s }.first
       db_column && db_column.type == :boolean
@@ -182,15 +187,28 @@ module SortableTable
           end
         end
       else
-        assert_db_column_exists(attribute, model_under_test)
+        assert_db_column_or_post_fetch_sort_exists(attribute, model_under_test)
       end
     end
 
+    def db_column_exists?(attribute, model)
+      model.columns.detect {|column| column.name == attribute.to_s }
+    end
+
+    def post_fetch_sort_exists?(attribute)
+      @controller.class.post_fetch_sorts[attribute.to_sym]
+    end
+
     def assert_db_column_exists(attribute, model)
-      column = model.
-        columns.
-        detect {|column| column.name == attribute.to_s }
-      assert_not_nil column, "No such column: #{model}##{attribute}"
+      assert db_column_exists?(attribute, model), "No such column: #{model}##{attribute}"
+    end
+
+    def assert_db_column_or_post_fetch_sort_exists(attribute, model)
+      assert(
+        (db_column_exists?(attribute, model) || 
+          post_fetch_sort_exists?(attribute)),
+        "No such column or post-DB-fetch sort: #{model}##{attribute}"
+      )
     end
   end
 end
