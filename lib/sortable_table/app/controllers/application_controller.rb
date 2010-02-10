@@ -57,14 +57,27 @@ module SortableTable
             @post_fetch_sorts ||= HashWithIndifferentAccess.new
 
             if hash_or_symbol.kind_of? Hash
-              @post_fetch_sorts.merge!(hash_or_symbol)
+              lambdaized_post_fetch_hash = lambdaize_hash(hash_or_symbol)
+              @post_fetch_sorts.merge!(lambdaized_post_fetch_hash)
             else
-              @post_fetch_sorts[hash_or_symbol] = lambda{|model| self.send(hash_or_symbol, model)}
+              @post_fetch_sorts[hash_or_symbol] = lambdaize_symbol(hash_or_symbol)
             end
           end
 
           def post_fetch_sorts
             @post_fetch_sorts || {}
+          end
+          
+          def lambdaize_hash(hash)
+            returning(result={}) do
+              hash.each do |key, value|
+                result[key] = value.kind_of?(Proc) ? value : lambdaize_symbol(value)
+              end
+            end
+          end
+
+          def lambdaize_symbol(symbol)
+            lambda{|model| self.send(symbol, model)}
           end
         end
         

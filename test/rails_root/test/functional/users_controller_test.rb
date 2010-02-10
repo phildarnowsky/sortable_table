@@ -31,6 +31,10 @@ class UsersControllerTest < ActionController::TestCase
       SHA1.hexdigest(user.name).reverse
     end
 
+    should_sort_by :last_hash_char do |user|
+      SHA1.hexdigest(user.name)[-1,1]
+    end
+
     # block form to test an action other than :index
     should_sort_by_attributes :email do |sort, order|
       get :show, :sort => sort, :order => order
