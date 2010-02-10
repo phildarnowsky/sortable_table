@@ -6,6 +6,7 @@ class UsersController < ApplicationController
                       :age_and_name => ["age", "users.name"]
 
   post_fetch_sort :name_hash => lambda {|user| SHA1.hexdigest(user.name)}
+  post_fetch_sort :reversed_name_hash
 
   def index
     @users = User.find :all, :include => :group, :order => sort_order("ascending")
@@ -20,4 +21,9 @@ class UsersController < ApplicationController
     @members = User.find :all, :order => sort_order
   end
 
+  private
+
+  def self.reversed_name_hash(user)
+    SHA1.hexdigest(user.name).reverse
+  end
 end

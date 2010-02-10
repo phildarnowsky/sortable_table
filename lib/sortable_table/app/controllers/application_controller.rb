@@ -53,9 +53,14 @@ module SortableTable
             helper_method :sort_order, :default_sort_column, :sortable_table_direction
           end
 
-          def post_fetch_sort(hash)
+          def post_fetch_sort(hash_or_symbol)
             @post_fetch_sorts ||= HashWithIndifferentAccess.new
-            @post_fetch_sorts.merge!(hash)
+
+            if hash_or_symbol.kind_of? Hash
+              @post_fetch_sorts.merge!(hash_or_symbol)
+            else
+              @post_fetch_sorts[hash_or_symbol] = lambda{|model| self.send(hash_or_symbol, model)}
+            end
           end
 
           def post_fetch_sorts
